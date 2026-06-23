@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Empaque Estándar',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.1.0',
     'category': 'Sales',
     'summary': 'Venta por empaque estándar con cálculo vaivén paquetes ↔ cantidad',
     'description': """
@@ -22,6 +22,10 @@
     'depends': [
         'sale',
         'product',
+        # Integra el empaque con el modo de cantidad (Asignar / Mandar a pedir)
+        # del flujo de asignación: define por_asignar/auto_transit_assign y la
+        # restricción de edición de 'Solicitado'.
+        'stock_transit_allocation',
     ],
     'data': [
         'security/standard_pack_security.xml',

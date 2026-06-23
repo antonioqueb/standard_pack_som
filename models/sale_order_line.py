@@ -49,6 +49,44 @@ class SaleOrderLine(models.Model):
                 if not line.pack_qty:
                     line.pack_qty = 1.0
                 line.product_uom_qty = line.pack_qty * pack.qty_per_pack
+                line._standard_pack_set_assignment_mode(pack.qty_per_pack)
+
+    def _standard_pack_set_assignment_mode(self, qty_per_pack):
+        """Define el modo de cantidad cuando un material nace/recibe empaque.
+
+        La cantidad 'Solicitado' solo es editable en modo 'Asignar' (por_asignar)
+        o 'Mandar a pedir' (auto_transit_assign). Como el empaque hace nacer la
+        línea con cantidad por defecto, hay que dejarla en un modo editable:
+
+        - Stock libre >= un paquete  -> 'Asignar'.
+        - Stock 0 o menor a un paquete -> 'Mandar a pedir'.
+
+        Se apoya en los campos del flujo de asignación (módulo
+        stock_transit_allocation); si no estuvieran presentes, no hace nada.
+        """
+        self.ensure_one()
+
+        if 'por_asignar' not in self._fields or 'auto_transit_assign' not in self._fields:
+            return
+
+        if not qty_per_pack or qty_per_pack <= 0:
+            return
+
+        if hasattr(self, '_tc_get_free_internal_qty'):
+            stock = self._tc_get_free_internal_qty() or 0.0
+        else:
+            stock = getattr(self, 'tc_available_internal_qty', 0.0) or 0.0
+
+        if stock >= qty_per_pack:
+            # 'Asignar': hay stock suficiente para al menos un paquete. Su propio
+            # onchange apaga 'Mandar a pedir' (mutuamente excluyentes).
+            if not self.por_asignar:
+                self.por_asignar = True
+        else:
+            # Stock 0 o menor a un paquete -> 'Mandar a pedir'. Su onchange apaga
+            # 'Asignar'.
+            if not self.auto_transit_assign:
+                self.auto_transit_assign = True
 
     @api.onchange('pack_qty')
     def _onchange_pack_qty(self):
@@ -72,9 +110,13 @@ class SaleOrderLine(models.Model):
         for line in self:
             tmpl = line.product_template_id
             if tmpl and tmpl.has_standard_pack and tmpl.default_pack_id:
-                line.standard_pack_id = tmpl.default_pack_id
+                pack = tmpl.default_pack_id
+                line.standard_pack_id = pack
                 line.pack_qty = 1.0
-                line.product_uom_qty = tmpl.default_pack_id.qty_per_pack
+                line.product_uom_qty = pack.qty_per_pack
+                # Nace en modo editable (Asignar / Mandar a pedir) según el stock,
+                # para no chocar con la restricción de edición de 'Solicitado'.
+                line._standard_pack_set_assignment_mode(pack.qty_per_pack)
             elif not (tmpl and tmpl.has_standard_pack):
                 # Producto sin empaque: limpia cualquier selección previa.
                 line.standard_pack_id = False

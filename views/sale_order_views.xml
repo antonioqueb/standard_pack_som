@@ -5,31 +5,48 @@
         <field name="model">sale.order</field>
         <field name="inherit_id" ref="sale.view_order_form"/>
         <field name="arch" type="xml">
-            <!-- Línea (vista lista embebida): Empaque + Pack junto a la cantidad -->
+            <!--
+                Re-secuenciado: fija el orden por 'sequence' (el handle) para que
+                al crear una línea nueva (Enter) la lista tenga un orderBy válido y
+                no falle el resequence del editable list (orderBy[0] undefined).
+            -->
+            <xpath expr="//field[@name='order_line']/list" position="attributes">
+                <attribute name="default_order">sequence, id</attribute>
+            </xpath>
+
+            <!-- Línea (vista lista embebida): Empaque + Pack junto a la cantidad.
+                 El pack solo es editable cuando la cantidad también lo es: en modo
+                 'Asignar' (por_asignar) o 'Mandar a pedir' (auto_transit_assign).
+                 por_asignar/auto_transit_assign ya existen como columnas (las añade
+                 stock_transit_allocation), por eso aquí solo se referencian. -->
             <xpath expr="//field[@name='order_line']/list/field[@name='product_uom_qty']" position="before">
                 <field name="has_standard_pack" column_invisible="True"/>
                 <field name="standard_pack_id"
                        string="Empaque"
                        optional="show"
-                       readonly="not has_standard_pack"
+                       readonly="not has_standard_pack or (not auto_transit_assign and not por_asignar)"
                        options="{'no_create': True, 'no_open': True}"/>
                 <field name="pack_qty"
                        string="Pack"
                        optional="show"
-                       readonly="not has_standard_pack"/>
+                       readonly="not has_standard_pack or (not auto_transit_assign and not por_asignar)"/>
                 <field name="qty_per_pack" string="Cant./Empaque" optional="hide"/>
             </xpath>
 
-            <!-- Línea (vista formulario embebida) -->
+            <!-- Línea (vista formulario embebida). El form embebido NO incluye
+                 por_asignar/auto_transit_assign, así que aquí se agregan invisibles
+                 para poder condicionar el readonly del pack igual que en la lista. -->
             <xpath expr="//field[@name='order_line']/form//field[@name='product_uom_qty']" position="before">
                 <field name="has_standard_pack" invisible="1"/>
+                <field name="por_asignar" invisible="1"/>
+                <field name="auto_transit_assign" invisible="1"/>
                 <field name="standard_pack_id"
                        string="Empaque"
-                       readonly="not has_standard_pack"
+                       readonly="not has_standard_pack or (not auto_transit_assign and not por_asignar)"
                        options="{'no_create': True, 'no_open': True}"/>
                 <field name="pack_qty"
                        string="Pack"
-                       readonly="not has_standard_pack"/>
+                       readonly="not has_standard_pack or (not auto_transit_assign and not por_asignar)"/>
                 <field name="qty_per_pack" string="Cant./Empaque" readonly="1"/>
             </xpath>
         </field>
