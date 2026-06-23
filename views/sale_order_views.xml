@@ -5,7 +5,7 @@
         <field name="model">sale.order</field>
         <field name="inherit_id" ref="sale.view_order_form"/>
         <field name="arch" type="xml">
-            <!-- Línea (vista lista embebida): Empaque + # Paquetes junto a la cantidad -->
+            <!-- Línea (vista lista embebida): Empaque + Pack junto a la cantidad -->
             <xpath expr="//field[@name='order_line']/list/field[@name='product_uom_qty']" position="before">
                 <field name="has_standard_pack" column_invisible="True"/>
                 <field name="standard_pack_id"
@@ -14,7 +14,7 @@
                        readonly="not has_standard_pack"
                        options="{'no_create': True, 'no_open': True}"/>
                 <field name="pack_qty"
-                       string="# Paquetes"
+                       string="Pack"
                        optional="show"
                        readonly="not has_standard_pack"/>
                 <field name="qty_per_pack" string="Cant./Empaque" optional="hide"/>
@@ -28,7 +28,7 @@
                        readonly="not has_standard_pack"
                        options="{'no_create': True, 'no_open': True}"/>
                 <field name="pack_qty"
-                       string="# Paquetes"
+                       string="Pack"
                        readonly="not has_standard_pack"/>
                 <field name="qty_per_pack" string="Cant./Empaque" readonly="1"/>
             </xpath>

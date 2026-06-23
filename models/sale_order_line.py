@@ -15,10 +15,10 @@ class SaleOrderLine(models.Model):
         help='Empaque estándar con el que se vende este producto.',
     )
     pack_qty = fields.Float(
-        string='# Paquetes',
+        string='Pack',
         digits='Product Unit of Measure',
         help='Número de paquetes a vender. La cantidad se calcula como '
-             '# Paquetes × Cantidad por Empaque.',
+             'Pack × Cantidad por Empaque.',
     )
     qty_per_pack = fields.Float(
         string='Cant./Empaque',
@@ -37,7 +37,7 @@ class SaleOrderLine(models.Model):
     )
 
     # =========================================================================
-    # CÁLCULO VAIVÉN: # Paquetes ↔ Cantidad
+    # CÁLCULO VAIVÉN: Pack ↔ Cantidad
     # =========================================================================
 
     @api.onchange('standard_pack_id')
@@ -52,7 +52,7 @@ class SaleOrderLine(models.Model):
 
     @api.onchange('pack_qty')
     def _onchange_pack_qty(self):
-        """# Paquetes → Cantidad."""
+        """Pack → Cantidad."""
         for line in self:
             pack = line.standard_pack_id
             if pack and pack.qty_per_pack:
@@ -60,7 +60,7 @@ class SaleOrderLine(models.Model):
 
     @api.onchange('product_uom_qty')
     def _onchange_product_uom_qty_packs(self):
-        """Cantidad → # Paquetes (vaivén inverso)."""
+        """Cantidad → Pack (vaivén inverso)."""
         for line in self:
             pack = line.standard_pack_id
             if pack and pack.qty_per_pack:
