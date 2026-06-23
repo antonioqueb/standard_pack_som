@@ -4,7 +4,7 @@
     <menuitem id="menu_standard_pack_root"
               name="Empaque Estándar"
               sequence="45"
-              groups="standard_pack.group_standard_pack_manager"/>
+              groups="group_standard_pack_manager"/>
 
     <!-- Empaques Estándar -->
     <record id="action_standard_pack" model="ir.actions.act_window">

@@ -8,7 +8,7 @@
         <field name="arch" type="xml">
             <xpath expr="//notebook" position="inside">
                 <page string="Empaque Estándar" name="standard_pack"
-                      groups="standard_pack.group_standard_pack_manager">
+                      groups="group_standard_pack_manager">
                     <group>
                         <group>
                             <field name="has_standard_pack" readonly="1"/>
