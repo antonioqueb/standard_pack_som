@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sale_order_form_pack" model="ir.ui.view">
+        <field name="name">sale.order.form.standard.pack</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <!-- Línea (vista lista embebida): Empaque + # Paquetes junto a la cantidad -->
+            <xpath expr="//field[@name='order_line']/list/field[@name='product_uom_qty']" position="before">
+                <field name="has_standard_pack" column_invisible="True"/>
+                <field name="standard_pack_id"
+                       string="Empaque"
+                       optional="show"
+                       readonly="not has_standard_pack"
+                       options="{'no_create': True, 'no_open': True}"/>
+                <field name="pack_qty"
+                       string="# Paquetes"
+                       optional="show"
+                       readonly="not has_standard_pack"/>
+                <field name="qty_per_pack" string="Cant./Empaque" optional="hide"/>
+            </xpath>
+
+            <!-- Línea (vista formulario embebida) -->
+            <xpath expr="//field[@name='order_line']/form//field[@name='product_uom_qty']" position="before">
+                <field name="has_standard_pack" invisible="1"/>
+                <field name="standard_pack_id"
+                       string="Empaque"
+                       readonly="not has_standard_pack"
+                       options="{'no_create': True, 'no_open': True}"/>
+                <field name="pack_qty"
+                       string="# Paquetes"
+                       readonly="not has_standard_pack"/>
+                <field name="qty_per_pack" string="Cant./Empaque" readonly="1"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

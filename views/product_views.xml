@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Pestaña de Empaques Estándar en el producto (solo Administrador) -->
+    <record id="view_product_template_form_standard_pack" model="ir.ui.view">
+        <field name="name">product.template.form.standard.pack</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_only_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Empaque Estándar" name="standard_pack"
+                      groups="standard_pack.group_standard_pack_manager">
+                    <group>
+                        <group>
+                            <field name="has_standard_pack" readonly="1"/>
+                            <field name="default_pack_id" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="standard_pack_count" string="Empaques Definidos"/>
+                        </group>
+                    </group>
+                    <field name="standard_pack_ids">
+                        <list editable="bottom">
+                            <field name="sequence" widget="handle"/>
+                            <field name="pack_type_id"/>
+                            <field name="qty_per_pack"/>
+                            <field name="uom_id" readonly="1"/>
+                            <field name="is_default"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

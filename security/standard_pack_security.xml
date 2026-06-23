@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Categoría / Privilegio (Odoo 19) -->
+        <record id="module_category_standard_pack" model="ir.module.category">
+            <field name="name">Empaque Estándar</field>
+            <field name="description">Control de acceso para empaques estándar.</field>
+            <field name="sequence">50</field>
+        </record>
+
+        <record id="privilege_standard_pack" model="res.groups.privilege">
+            <field name="name">Empaque Estándar</field>
+            <field name="category_id" ref="module_category_standard_pack"/>
+            <field name="sequence">50</field>
+        </record>
+
+        <!-- Único grupo: Administrador de Empaques. Solo él da de alta estándares.
+             Los demás usuarios solo consumen (lectura) vía acceso del modelo. -->
+        <record id="group_standard_pack_manager" model="res.groups">
+            <field name="name">Administrador de Empaques</field>
+            <field name="privilege_id" ref="privilege_standard_pack"/>
+            <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+            <field name="comment">
+                Acceso completo: crea/edita tipos de empaque y empaques estándar,
+                y realiza asignación masiva. Los demás usuarios solo pueden
+                consultarlos y vender dentro del estándar.
+            </field>
+        </record>
+    </data>
+</odoo>
