@@ -16,7 +16,7 @@ class ProductTemplate(models.Model):
     )
     has_standard_pack = fields.Boolean(
         string='Tiene Empaque Estándar',
-        compute='_compute_standard_pack_count',
+        compute='_compute_has_standard_pack',
         store=True,
         help='Indica si el producto tiene al menos un empaque estándar definido.',
     )
@@ -27,12 +27,19 @@ class ProductTemplate(models.Model):
         store=True,
     )
 
+    # Métodos de cómputo separados a propósito: 'has_standard_pack' es ALMACENADO
+    # (store=True => compute_sudo=True por defecto) y 'standard_pack_count' NO lo
+    # es. Odoo 19 advierte si un mismo método calcula campos con distinto 'store'
+    # o 'compute_sudo', por eso cada uno tiene su propio método.
     @api.depends('standard_pack_ids', 'standard_pack_ids.active')
     def _compute_standard_pack_count(self):
         for product in self:
-            packs = product.standard_pack_ids.filtered('active')
-            product.standard_pack_count = len(packs)
-            product.has_standard_pack = bool(packs)
+            product.standard_pack_count = len(product.standard_pack_ids.filtered('active'))
+
+    @api.depends('standard_pack_ids', 'standard_pack_ids.active')
+    def _compute_has_standard_pack(self):
+        for product in self:
+            product.has_standard_pack = bool(product.standard_pack_ids.filtered('active'))
 
     @api.depends('standard_pack_ids.is_default', 'standard_pack_ids.active')
     def _compute_default_pack(self):
