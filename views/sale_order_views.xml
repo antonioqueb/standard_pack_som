@@ -30,7 +30,6 @@
                        string="Pack"
                        optional="show"
                        readonly="not has_standard_pack or (not auto_transit_assign and not por_asignar)"/>
-                <field name="qty_per_pack" string="Cant./Empaque" optional="hide"/>
             </xpath>
 
             <!-- Línea (vista formulario embebida). El form embebido NO incluye
