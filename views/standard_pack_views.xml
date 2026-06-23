@@ -52,10 +52,8 @@
                 <field name="pack_type_id"/>
                 <filter name="filter_default" string="Predeterminados" domain="[('is_default', '=', True)]"/>
                 <separator/>
-                <group expand="0" string="Agrupar Por">
-                    <filter name="group_product" string="Producto" context="{'group_by': 'product_tmpl_id'}"/>
-                    <filter name="group_type" string="Tipo de Empaque" context="{'group_by': 'pack_type_id'}"/>
-                </group>
+                <filter name="group_product" string="Producto" context="{'group_by': 'product_tmpl_id'}"/>
+                <filter name="group_type" string="Tipo de Empaque" context="{'group_by': 'pack_type_id'}"/>
             </search>
         </field>
     </record>
