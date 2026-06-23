@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Empaque Estándar',
-    'version': '19.0.1.1.0',
+    'version': '19.0.1.2.0',
     'category': 'Sales',
     'summary': 'Venta por empaque estándar con cálculo vaivén paquetes ↔ cantidad',
     'description': """
@@ -38,6 +38,11 @@
         'wizard/mass_assign_pack_views.xml',
         'views/menus.xml',
     ],
+    'assets': {
+        'web.assets_backend': [
+            'standard_pack_som/static/src/sale_line_resequence_fix.js',
+        ],
+    },
     'installable': True,
     'application': True,
     'auto_install': False,
