@@ -14,6 +14,15 @@
                 <attribute name="default_order">sequence, id</attribute>
             </xpath>
 
+            <!--
+                Clase de scope para el SCSS (sale_order_lines.scss): evita que el
+                color de estado de la fila se pierda (se ponga blanco) al enfocar/
+                editar una celda. Acotado a esta lista, no afecta otras listas.
+            -->
+            <xpath expr="//field[@name='order_line']" position="attributes">
+                <attribute name="class" add="tc_sale_order_lines_clean" separator=" "/>
+            </xpath>
+
             <!-- Línea (vista lista embebida): Empaque + Pack junto a la cantidad.
                  El pack solo es editable cuando la cantidad también lo es: en modo
                  'Asignar' (por_asignar) o 'Mandar a pedir' (auto_transit_assign).

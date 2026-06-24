@@ -1,0 +1,72 @@
+// ============================================================================
+// Líneas de la orden de venta: que el color de la fila (estado por_asignar /
+// "Solicitado" que pinta `stock_transit_allocation`) NO se pierda al editar.
+//
+// Problema (Odoo 19, addons/web/static/src/views/list/list_renderer.scss):
+//   .o_selected_row td:focus-within  -> background-color: $o-view-background-color  (blanco)
+//   .o_keyboard_navigation td:focus-within -> background-color: $o-form-lightsecondary
+//   .o_data_row.o_selected_row > .o_data_cell .o_input -> --o-input-background-color: initial
+// Al enfocar/editar una celda, Odoo le fuerza fondo y tapa el color de estado.
+//
+// Solución: dentro de esta lista, dejamos la celda y el input TRANSPARENTES en
+// foco para que herede el color que ya tenga la fila (cualquiera que sea el
+// estado). Acotado a `.tc_sale_order_lines_clean` (clase puesta en el
+// <field name="order_line"> vía la vista) para no tocar el resto de listas.
+// ============================================================================
+
+.tc_sale_order_lines_clean {
+    .o_list_renderer .o_list_table {
+        // Fila NO seleccionada con navegación por teclado (foco interno)
+        tbody.o_keyboard_navigation {
+            th:focus-within,
+            td:focus-within {
+                background: transparent !important;
+                background-color: transparent !important;
+                --table-accent-bg: transparent !important;
+                --bs-table-accent-bg: transparent !important;
+                --bs-table-bg: transparent !important;
+                outline: none !important;
+            }
+        }
+
+        // Fila en edición (la que fuerza blanco)
+        tbody > tr.o_selected_row {
+            th:focus-within,
+            td:focus-within,
+            > .o_data_cell:focus-within {
+                background: transparent !important;
+                background-color: transparent !important;
+                --table-accent-bg: transparent !important;
+                --bs-table-accent-bg: transparent !important;
+                --bs-table-bg: transparent !important;
+                outline: none !important;
+            }
+
+            // El input editable también se pone blanco (--o-input-background-color: initial)
+            > .o_data_cell .o_field_widget:not(.o_readonly_modifier) {
+                .o_input,
+                .o_input:focus,
+                .o_input:focus-visible,
+                input.o_input,
+                input.o_input:focus,
+                select.o_input,
+                select.o_input:focus,
+                textarea.o_input,
+                textarea.o_input:focus {
+                    background: transparent !important;
+                    background-color: transparent !important;
+                    --o-input-background-color: transparent !important;
+                    box-shadow: none !important;
+                    outline: none !important;
+                }
+
+                .o_input_dropdown,
+                .o-autocomplete,
+                .o_field_many2one_selection {
+                    background: transparent !important;
+                    background-color: transparent !important;
+                }
+            }
+        }
+    }
+}
