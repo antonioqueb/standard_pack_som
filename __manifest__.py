@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'StandardPack',
-    'version': '19.0.1.4.0',
+    'version': '19.0.1.4.1',
     'category': 'Sales',
     'summary': 'Venta por empaque estándar con cálculo vaivén paquetes ↔ cantidad',
     'description': """

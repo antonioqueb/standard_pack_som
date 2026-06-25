@@ -5,7 +5,7 @@
               name="StandardPack"
               web_icon="standard_pack_som,static/description/icon.svg"
               sequence="45"
-              groups="group_standard_pack_manager"/>
+              groups="standard_pack_som.group_standard_pack_manager"/>
 
     <!-- Empaques Estándar -->
     <record id="action_standard_pack" model="ir.actions.act_window">
