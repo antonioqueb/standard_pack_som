@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="StandardPack">
+  <defs>
+    <linearGradient id="spBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4f8bf0"/>
+      <stop offset="1" stop-color="#1f5fe0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Fondo -->
+  <rect x="8" y="8" width="240" height="240" rx="54" fill="url(#spBg)"/>
+
+  <!-- Caja isométrica (empaque) -->
+  <g stroke="#16306e" stroke-width="3.5" stroke-linejoin="round">
+    <polygon points="128,50 200,91 128,132 56,91" fill="#ffffff"/>
+    <polygon points="56,91 128,132 128,206 56,165" fill="#cdd9f2"/>
+    <polygon points="200,91 128,132 128,206 200,165" fill="#a9bbe6"/>
+  </g>
+
+  <!-- Costura / cinta frontal -->
+  <line x1="128" y1="132" x2="128" y2="206" stroke="#16306e" stroke-width="3.5"/>
+
+  <!-- Etiqueta / cinta superior -->
+  <polygon points="92,80 128,101 164,80 128,59" fill="#f5a623" stroke="#d68910" stroke-width="2.5" stroke-linejoin="round"/>
+</svg>

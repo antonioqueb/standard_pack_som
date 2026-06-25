@@ -2,7 +2,8 @@
 <odoo>
     <!-- Menú raíz (solo Administrador de Empaques) -->
     <menuitem id="menu_standard_pack_root"
-              name="Empaque Estándar"
+              name="StandardPack"
+              web_icon="standard_pack_som,static/description/icon.svg"
               sequence="45"
               groups="group_standard_pack_manager"/>
 
