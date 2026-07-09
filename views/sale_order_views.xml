@@ -38,7 +38,26 @@
                 <field name="pack_qty"
                        string="Pack"
                        optional="show"
+                       decoration-danger="has_standard_pack and not pack_is_exact"
+                       decoration-bf="has_standard_pack and not pack_is_exact"
                        readonly="not has_standard_pack or (not auto_transit_assign and not por_asignar)"/>
+                <field name="pack_is_exact" column_invisible="True"/>
+                <field name="pack_fit_info"
+                       string="Cajas"
+                       optional="show"
+                       decoration-danger="not pack_is_exact"
+                       decoration-bf="not pack_is_exact"
+                       decoration-success="pack_is_exact"/>
+                <button name="action_pack_round_up" type="object"
+                        icon="fa-arrow-circle-up"
+                        title="Redondear hacia arriba a cajas completas"
+                        invisible="pack_is_exact or not has_standard_pack"/>
+            </xpath>
+
+            <!-- Cantidad en ROJO cuando no cierra contra cajas completas. -->
+            <xpath expr="//field[@name='order_line']/list/field[@name='product_uom_qty']" position="attributes">
+                <attribute name="decoration-danger">has_standard_pack and not pack_is_exact</attribute>
+                <attribute name="decoration-bf">has_standard_pack and not pack_is_exact</attribute>
             </xpath>
 
             <!-- Línea (vista formulario embebida). El form embebido NO incluye
@@ -56,6 +75,13 @@
                        string="Pack"
                        readonly="not has_standard_pack or (not auto_transit_assign and not por_asignar)"/>
                 <field name="qty_per_pack" string="Cant./Empaque" readonly="1"/>
+                <field name="pack_is_exact" invisible="1"/>
+                <field name="pack_fit_info" string="Cajas" readonly="1"
+                       decoration-danger="not pack_is_exact"/>
+                <button name="action_pack_round_up" type="object"
+                        string="Redondear a cajas completas"
+                        icon="fa-arrow-circle-up"
+                        invisible="pack_is_exact or not has_standard_pack"/>
             </xpath>
         </field>
     </record>
