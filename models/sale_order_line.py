@@ -38,73 +38,6 @@ class SaleOrderLine(models.Model):
         readonly=True,
     )
 
-    # === Semáforo de cierre contra cajas completas ===
-    pack_is_exact = fields.Boolean(
-        string='Cierra en cajas',
-        compute='_compute_pack_fit',
-        help='La cantidad solicitada es un múltiplo exacto de cajas completas.',
-    )
-    pack_fit_info = fields.Char(
-        string='Cajas',
-        compute='_compute_pack_fit',
-        help='Resumen: cantidad solicitada, cajas necesarias y equivalente en '
-             'cajas completas. En rojo cuando la cantidad no cierra.',
-    )
-
-    @api.depends('product_uom_qty', 'standard_pack_id',
-                 'standard_pack_id.qty_per_pack', 'display_type')
-    def _compute_pack_fit(self):
-        for line in self:
-            pack = line.standard_pack_id
-            qpp = pack.qty_per_pack if pack else 0.0
-            qty = line.product_uom_qty or 0.0
-
-            if line.display_type or not line.has_standard_pack or qpp <= 0 or qty <= 0:
-                line.pack_is_exact = True
-                line.pack_fit_info = ''
-                continue
-
-            uom = line.product_uom_id.name or ''
-            packs = qty / qpp
-            packs_round = round(packs)
-            exact = packs_round > 0 and abs(packs - packs_round) <= 1e-6
-
-            line.pack_is_exact = exact
-
-            if exact:
-                line.pack_fit_info = _(
-                    '%(n)s caja(s) = %(eq)g %(uom)s ✓',
-                    n=int(packs_round), eq=qty, uom=uom,
-                )
-            else:
-                # Sugerencia: SIEMPRE hacia arriba (evita vender de menos).
-                packs_up = max(1, math.ceil(packs - 1e-6))
-                eq_up = float_round(
-                    packs_up * qpp,
-                    precision_rounding=line.product_uom_id.rounding or 0.01,
-                )
-                line.pack_fit_info = _(
-                    '%(qty)g %(uom)s NO cierra → sugerido %(n)s caja(s) = %(eq)g %(uom)s',
-                    qty=qty, uom=uom, n=packs_up, eq=eq_up,
-                )
-
-    def action_pack_round_up(self):
-        """Redondea la línea hacia arriba a cajas completas (un clic)."""
-        for line in self:
-            pack = line.standard_pack_id
-            qpp = pack.qty_per_pack if pack else 0.0
-            if not qpp or line.product_uom_qty <= 0:
-                continue
-            packs_up = max(1, math.ceil((line.product_uom_qty / qpp) - 1e-6))
-            line.write({
-                'pack_qty': packs_up,
-                'product_uom_qty': float_round(
-                    packs_up * qpp,
-                    precision_rounding=line.product_uom_id.rounding or 0.01,
-                ),
-            })
-        return True
-
     # =========================================================================
     # CÁLCULO VAIVÉN: Pack ↔ Cantidad
     # =========================================================================
@@ -167,11 +100,33 @@ class SaleOrderLine(models.Model):
 
     @api.onchange('product_uom_qty')
     def _onchange_product_uom_qty_packs(self):
-        """Cantidad → Pack (vaivén inverso)."""
+        """Cantidad → Pack (vaivén inverso) con redondeo AUTOMÁTICO.
+
+        Si la cantidad tecleada no cierra en cajas completas, se redondea
+        hacia arriba en el momento (evita vender de menos y ventas con
+        picos), sin botones ni columnas extra. El vendedor puede bajar el
+        número de cajas editando el Pack si el cliente acepta menos.
+        """
         for line in self:
             pack = line.standard_pack_id
-            if pack and pack.qty_per_pack:
-                line.pack_qty = line.product_uom_qty / pack.qty_per_pack
+            qpp = pack.qty_per_pack if pack else 0.0
+            if not qpp:
+                continue
+
+            qty = line.product_uom_qty or 0.0
+            if qty <= 0:
+                line.pack_qty = 0
+                continue
+
+            packs = qty / qpp
+            packs_up = max(1, math.ceil(packs - 1e-6))
+            line.pack_qty = packs_up
+
+            if abs(packs - packs_up) > 1e-6:
+                line.product_uom_qty = float_round(
+                    packs_up * qpp,
+                    precision_rounding=line.product_uom_id.rounding or 0.01,
+                )
 
     @api.onchange('product_id')
     def _onchange_product_id_set_default_pack(self):
