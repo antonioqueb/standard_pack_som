@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'StandardPack',
-    'version': '19.0.1.7.0',
+    'version': '19.0.1.8.0',
     'category': 'Sales',
     'summary': 'Venta por empaque estándar con cálculo vaivén paquetes ↔ cantidad',
     'description': """
@@ -26,6 +26,11 @@
         # del flujo de asignación: define por_asignar/auto_transit_assign y la
         # restricción de edición de 'Solicitado'.
         'stock_transit_allocation',
+        # Fija la posición en la cadena de action_confirm: sin declararlo, el
+        # orden real dependía del grafo de módulos y _enforce_pack_compliance
+        # podía correr sobre respaldos de cotización o no correr nunca en
+        # re-confirmaciones.
+        'sale_stone_selection',
     ],
     'data': [
         'security/standard_pack_security.xml',
