@@ -18,6 +18,9 @@ class PackType(models.Model):
         default='fa-cube',
     )
 
-    _sql_constraints = [
-        ('code_uniq', 'unique(code)', 'El código del tipo de empaque debe ser único.'),
-    ]
+    # Odoo 19: models.Constraint reemplaza a _sql_constraints (que ya no se
+    # aplica: la unicidad NO estaba protegida).
+    _code_uniq = models.Constraint(
+        'unique(code)',
+        'El código del tipo de empaque debe ser único.',
+    )

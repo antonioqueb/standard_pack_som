@@ -61,10 +61,13 @@ class StandardPack(models.Model):
             else:
                 rec.display_name = 'Nuevo'
 
-    _sql_constraints = [
-        ('qty_positive', 'CHECK(qty_per_pack > 0)',
-         'La cantidad por empaque debe ser mayor a cero.'),
-        ('product_type_qty_uniq',
-         'unique(product_tmpl_id, pack_type_id, qty_per_pack, company_id)',
-         'Ya existe un empaque estándar con el mismo tipo y cantidad para este producto.'),
-    ]
+    # Odoo 19: _sql_constraints dejó de aplicarse (solo emite warning al
+    # cargar). Las restricciones deben declararse como models.Constraint.
+    _qty_positive = models.Constraint(
+        'CHECK(qty_per_pack > 0)',
+        'La cantidad por empaque debe ser mayor a cero.',
+    )
+    _product_type_qty_uniq = models.Constraint(
+        'unique(product_tmpl_id, pack_type_id, qty_per_pack, company_id)',
+        'Ya existe un empaque estándar con el mismo tipo y cantidad para este producto.',
+    )
