@@ -23,18 +23,16 @@
                 <attribute name="class" add="tc_sale_order_lines_clean" separator=" "/>
             </xpath>
 
-            <!-- Línea (vista lista embebida): Empaque + Pack junto a la cantidad.
-                 El pack solo es editable cuando la cantidad también lo es: en modo
-                 'Asignar' (por_asignar) o 'Mandar a pedir' (auto_transit_assign).
-                 por_asignar/auto_transit_assign ya existen como columnas (las añade
-                 stock_transit_allocation), por eso aquí solo se referencian. -->
+            <!-- Línea (vista lista embebida): SOLO Pack junto a la cantidad.
+                 La columna Empaque se movió a la pestaña LOGÍSTICA (ver el
+                 record view_sale_order_form_pack_logistics más abajo) para
+                 compactar Líneas de la orden; el empaque default lo pone el
+                 onchange del producto y aquí solo se ajusta el Pack.
+                 standard_pack_id permanece invisible para que el valor viaje
+                 con el registro y pack_qty pueda depender de él. -->
             <xpath expr="//field[@name='order_line']/list/field[@name='product_uom_qty']" position="before">
                 <field name="has_standard_pack" column_invisible="True"/>
-                <field name="standard_pack_id"
-                       string="Empaque"
-                       optional="show"
-                       readonly="not has_standard_pack or (not auto_transit_assign and not por_asignar)"
-                       options="{'no_create': True, 'no_open': True}"/>
+                <field name="standard_pack_id" column_invisible="True"/>
                 <field name="pack_qty"
                        string="Pack"
                        optional="show"
@@ -56,6 +54,30 @@
                        string="Pack"
                        readonly="not has_standard_pack or (not auto_transit_assign and not por_asignar)"/>
                 <field name="qty_per_pack" string="Cant./Empaque" readonly="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ================================================================
+         EMPAQUE EN LA PESTAÑA LOGÍSTICA.
+         La columna salió de Líneas de la orden; aquí el vendedor puede
+         cambiar el empaque cuando el producto tenga varios (el default lo
+         pone el onchange del producto). Priority alta: la pestaña
+         logistics_lines la crea stock_transit_allocation (priority 16) y
+         este xpath debe aplicarse DESPUÉS de que exista.
+    ================================================================ -->
+    <record id="view_sale_order_form_pack_logistics" model="ir.ui.view">
+        <field name="name">sale.order.form.standard.pack.logistics</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="priority">210</field>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='logistics_lines']//list/field[@name='product_uom_qty']" position="before">
+                <field name="has_standard_pack" column_invisible="True"/>
+                <field name="standard_pack_id"
+                       string="Empaque"
+                       readonly="not has_standard_pack or (not auto_transit_assign and not por_asignar)"
+                       options="{'no_create': True, 'no_open': True}"/>
             </xpath>
         </field>
     </record>
