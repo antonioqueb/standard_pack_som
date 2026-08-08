@@ -30,12 +30,20 @@
                  onchange del producto y aquí solo se ajusta el Pack.
                  standard_pack_id permanece invisible para que el valor viaje
                  con el registro y pack_qty pueda depender de él. -->
+            <!-- Flag del padre para la visibilidad dinámica de la columna. -->
+            <xpath expr="//field[@name='order_line']" position="before">
+                <field name="has_pack_lines" invisible="1"/>
+            </xpath>
+
             <xpath expr="//field[@name='order_line']/list/field[@name='product_uom_qty']" position="before">
                 <field name="has_standard_pack" column_invisible="True"/>
                 <field name="standard_pack_id" column_invisible="True"/>
+                <!-- La columna Pack SOLO existe cuando la orden tiene al menos
+                     una línea con empaque estándar: una orden de puras placas
+                     no la muestra; al agregar un producto con pack, aparece. -->
                 <field name="pack_qty"
                        string="Pack"
-                       optional="show"
+                       column_invisible="not parent.has_pack_lines"
                        readonly="not has_standard_pack or (not auto_transit_assign and not por_asignar)"/>
             </xpath>
 
