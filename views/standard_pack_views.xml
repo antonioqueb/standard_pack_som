@@ -52,6 +52,9 @@
                 <field name="pack_type_id"/>
                 <filter name="filter_default" string="Predeterminados" domain="[('is_default', '=', True)]"/>
                 <separator/>
+                <filter name="filter_inactive" string="Archivados" domain="[('active', '=', False)]"/>
+                <filter name="filter_all_records" string="Activos y archivados" domain="['|', ('active', '=', True), ('active', '=', False)]"/>
+                <separator/>
                 <filter name="group_product" string="Producto" context="{'group_by': 'product_tmpl_id'}"/>
                 <filter name="group_type" string="Tipo de Empaque" context="{'group_by': 'pack_type_id'}"/>
             </search>
