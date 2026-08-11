@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'StandardPack',
-    'version': '19.0.2.0.0',
+    'version': '19.0.3.0.0',
     'category': 'Sales',
     'summary': 'Venta por empaque estándar con cálculo vaivén paquetes ↔ cantidad',
     'description': """
@@ -31,6 +31,10 @@
         # podía correr sobre respaldos de cotización o no correr nunca en
         # re-confirmaciones.
         'sale_stone_selection',
+        # Empaque también en la reserva/hold (columnas + vaivén + regla dura
+        # al confirmar): el modelo y la vista del hold viven en estos módulos.
+        'stock_lot_dimensions',
+        'inventory_shopping_cart',
     ],
     'data': [
         'security/standard_pack_security.xml',
@@ -38,6 +42,7 @@
         'data/pack_type_data.xml',
         'views/pack_type_views.xml',
         'views/standard_pack_views.xml',
+        'views/hold_order_views.xml',
         'views/product_views.xml',
         'views/sale_order_views.xml',
         'wizard/mass_assign_pack_views.xml',

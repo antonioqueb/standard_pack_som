@@ -3,3 +3,4 @@ from . import standard_pack
 from . import product_template
 from . import sale_order_line
 from . import sale_order
+from . import stock_lot_hold_order
