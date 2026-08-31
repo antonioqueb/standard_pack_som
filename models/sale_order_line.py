@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import json
 import math
 
 from odoo import models, fields, api, _
@@ -99,6 +100,45 @@ class SaleOrderLine(models.Model):
             if pack and pack.qty_per_pack:
                 line.product_uom_qty = line.pack_qty * pack.qty_per_pack
 
+    # =========================================================================
+    # LOTE COMPLETO = SIEMPRE VÁLIDO
+    # El empaque configurado puede venir redondeado (caja real 2.166 m² vs
+    # "2.17"): un lote físico de 60 cajas suma 129.96 m² y NO es múltiplo de
+    # 2.17. Si la cantidad de la línea está cubierta por los lotes elegidos
+    # (desglose por lote o lotes enteros), la venta es por cajas físicas y
+    # no se redondea ni se rechaza. Solo la cantidad SIN lotes debe ser
+    # múltiplo exacto del empaque.
+    # =========================================================================
+    def _som_pack_lot_total(self):
+        """m² cubiertos por los lotes de la línea (desglose parcial si existe,
+        si no el lote entero). 0.0 si no hay lotes."""
+        self.ensure_one()
+        if 'lot_ids' not in self._fields or not self.lot_ids:
+            return 0.0
+        breakdown = {}
+        raw = getattr(self, 'x_lot_breakdown_json', None)
+        if raw:
+            try:
+                data = json.loads(raw) if isinstance(raw, str) else dict(raw)
+                breakdown = {str(k): float(v or 0.0) for k, v in data.items()}
+            except Exception:
+                breakdown = {}
+        total = 0.0
+        for lot in self.lot_ids:
+            if str(lot.id) in breakdown:
+                total += breakdown[str(lot.id)]
+            else:
+                total += lot.sudo().product_qty or 0.0
+        return total
+
+    def _som_pack_qty_covered_by_lots(self, qty):
+        self.ensure_one()
+        total = self._som_pack_lot_total()
+        if total <= 0:
+            return False
+        rounding = self.product_uom_id.rounding or 0.01
+        return abs((qty or 0.0) - total) <= max(rounding, 0.01) + 1e-6
+
     @api.onchange('product_uom_qty')
     def _onchange_product_uom_qty_packs(self):
         """Cantidad → Pack (vaivén inverso) con redondeo AUTOMÁTICO.
@@ -120,6 +160,10 @@ class SaleOrderLine(models.Model):
                 continue
 
             packs = qty / qpp
+            if line._som_pack_qty_covered_by_lots(qty):
+                # Cantidad = lotes completos elegidos: cajas físicas, no se toca.
+                line.pack_qty = max(1, round(packs))
+                continue
             packs_up = max(1, math.ceil(packs - 1e-6))
             line.pack_qty = packs_up
 
@@ -188,6 +232,11 @@ class SaleOrderLine(models.Model):
 
             packs = line.product_uom_qty / qty_per_pack
             packs_rounded = round(packs)
+
+            # Lotes completos elegidos cubren la cantidad: válido aunque el
+            # empaque redondeado no dé un múltiplo exacto.
+            if line._som_pack_qty_covered_by_lots(line.product_uom_qty):
+                continue
 
             # Debe ser un número entero y positivo de paquetes.
             if packs_rounded <= 0 or abs(packs - packs_rounded) > 1e-6:
