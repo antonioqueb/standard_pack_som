@@ -110,11 +110,11 @@ class SaleOrderLine(models.Model):
     # múltiplo exacto del empaque.
     # =========================================================================
     def _som_pack_lot_total(self):
-        """m² cubiertos por los lotes de la línea (desglose parcial si existe,
-        si no el lote entero). 0.0 si no hay lotes."""
+        """m² cubiertos por el material elegido de la línea: quants
+        seleccionados (x_selected_lots, carrito/selector) o lotes (lot_ids),
+        con el desglose parcial si existe (x_lot_breakdown_json va indexado
+        por id de quant o de lote). 0.0 si no hay material ligado."""
         self.ensure_one()
-        if 'lot_ids' not in self._fields or not self.lot_ids:
-            return 0.0
         breakdown = {}
         raw = getattr(self, 'x_lot_breakdown_json', None)
         if raw:
@@ -124,11 +124,21 @@ class SaleOrderLine(models.Model):
             except Exception:
                 breakdown = {}
         total = 0.0
-        for lot in self.lot_ids:
-            if str(lot.id) in breakdown:
-                total += breakdown[str(lot.id)]
-            else:
-                total += lot.sudo().product_qty or 0.0
+        quants = self.x_selected_lots.sudo() if 'x_selected_lots' in self._fields and self.x_selected_lots else None
+        if quants:
+            for q in quants:
+                taken = breakdown.get(str(q.id))
+                if taken is None and q.lot_id:
+                    taken = breakdown.get(str(q.lot_id.id))
+                total += taken if taken is not None else (q.quantity or 0.0)
+            return total
+        if 'lot_ids' in self._fields and self.lot_ids:
+            for lot in self.lot_ids:
+                taken = breakdown.get(str(lot.id))
+                if taken is None:
+                    qs = lot.sudo().quant_ids.filtered(lambda x: x.location_id.usage in ('internal', 'transit') and x.quantity > 0)
+                    taken = sum(qs.mapped('quantity')) or (lot.sudo().product_qty or 0.0)
+                total += taken
         return total
 
     def _som_pack_qty_covered_by_lots(self, qty):
