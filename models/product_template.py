@@ -41,6 +41,18 @@ class ProductTemplate(models.Model):
         for product in self:
             product.has_standard_pack = bool(product.standard_pack_ids.filtered('active'))
 
+    def _som_standard_packs_for_company(self, company=None):
+        """Empaques activos que aplican a la compañía dada: compartidos
+        (sin compañía) o de esa compañía. sudo: has_standard_pack es
+        almacenado con sudo, así que la regla de negocio debe ver los mismos
+        empaques que ese flag, no solo los visibles por ir.rule."""
+        self.ensure_one()
+        packs = self.sudo().standard_pack_ids.filtered('active')
+        if company:
+            packs = packs.filtered(
+                lambda p: not p.company_id or p.company_id == company)
+        return packs
+
     @api.depends('standard_pack_ids.is_default', 'standard_pack_ids.active')
     def _compute_default_pack(self):
         for product in self:

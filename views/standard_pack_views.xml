@@ -11,7 +11,7 @@
                 <field name="qty_per_pack"/>
                 <field name="uom_id" readonly="1"/>
                 <field name="is_default"/>
-                <field name="company_id" column_invisible="True"/>
+                <field name="company_id" optional="hide" groups="base.group_multi_company"/>
             </list>
         </field>
     </record>
@@ -36,6 +36,7 @@
                             <field name="qty_per_pack"/>
                             <field name="uom_id"/>
                             <field name="is_default"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
                         </group>
                     </group>
                 </sheet>
@@ -57,6 +58,7 @@
                 <separator/>
                 <filter name="group_product" string="Producto" context="{'group_by': 'product_tmpl_id'}"/>
                 <filter name="group_type" string="Tipo de Empaque" context="{'group_by': 'pack_type_id'}"/>
+                <filter name="group_company" string="Compañía" context="{'group_by': 'company_id'}" groups="base.group_multi_company"/>
             </search>
         </field>
     </record>

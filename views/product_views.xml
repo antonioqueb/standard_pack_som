@@ -25,6 +25,7 @@
                             <field name="qty_per_pack"/>
                             <field name="uom_id" readonly="1"/>
                             <field name="is_default"/>
+                            <field name="company_id" optional="hide" groups="base.group_multi_company"/>
                         </list>
                     </field>
                 </page>

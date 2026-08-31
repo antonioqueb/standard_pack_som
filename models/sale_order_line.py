@@ -13,7 +13,8 @@ class SaleOrderLine(models.Model):
     standard_pack_id = fields.Many2one(
         'standard.pack',
         string='Empaque',
-        domain="[('product_tmpl_id', '=', product_template_id), ('active', '=', True)]",
+        domain="[('product_tmpl_id', '=', product_template_id), ('active', '=', True), "
+               "'|', ('company_id', '=', False), ('company_id', '=', company_id)]",
         help='Empaque estándar con el que se vende este producto.',
     )
     pack_qty = fields.Float(
@@ -133,8 +134,12 @@ class SaleOrderLine(models.Model):
         """Al elegir producto con empaque, preselecciona el empaque por defecto."""
         for line in self:
             tmpl = line.product_template_id
-            if tmpl and tmpl.has_standard_pack and tmpl.default_pack_id:
-                pack = tmpl.default_pack_id
+            # Empaque default de la compañía de la venta (no de env.company).
+            pack = False
+            if tmpl and tmpl.has_standard_pack:
+                pack = tmpl._som_standard_packs_for_company(
+                    line.company_id).filtered('is_default')[:1]
+            if pack:
                 line.standard_pack_id = pack
                 line.pack_qty = 1.0
                 line.product_uom_qty = pack.qty_per_pack
@@ -160,6 +165,10 @@ class SaleOrderLine(models.Model):
 
             tmpl = line.product_template_id
             if not tmpl or not tmpl.has_standard_pack:
+                continue
+            # Sin empaque aplicable a la compañía de la venta = venta libre
+            # (has_standard_pack se calcula con sudo sobre todas las compañías).
+            if not tmpl._som_standard_packs_for_company(line.company_id):
                 continue
 
             rounding = line.product_uom_id.rounding or 0.01

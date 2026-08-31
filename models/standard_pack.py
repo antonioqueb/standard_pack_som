@@ -41,10 +41,14 @@ class StandardPack(models.Model):
     )
     sequence = fields.Integer(string='Secuencia', default=10)
     active = fields.Boolean(default=True)
+    # Catálogo por producto: vacío = compartido entre compañías (así operaba
+    # con una sola compañía). Solo se fija una compañía cuando el empaque
+    # aplica a ella en exclusiva. Sin default a propósito (multiempresa).
     company_id = fields.Many2one(
         'res.company',
         string='Compañía',
-        default=lambda self: self.env.company,
+        index=True,
+        help='Vacío = el empaque aplica a todas las compañías.',
     )
 
     display_name = fields.Char(

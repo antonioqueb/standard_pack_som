@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'StandardPack',
-    'version': '19.0.3.1.0',
+    'version': '19.0.3.2.0',
     'category': 'Sales',
     'summary': 'Venta por empaque estándar con cálculo vaivén paquetes ↔ cantidad',
     'description': """
@@ -39,6 +39,7 @@
     'data': [
         'security/standard_pack_security.xml',
         'security/ir.model.access.csv',
+        'security/multi_company_rules.xml',
         'data/pack_type_data.xml',
         'views/pack_type_views.xml',
         'views/standard_pack_views.xml',

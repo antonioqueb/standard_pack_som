@@ -85,9 +85,12 @@ class StockLotHoldOrderLine(models.Model):
     def _onchange_product_id_set_default_pack_hold(self):
         for line in self:
             tmpl = line.product_id.product_tmpl_id if line.product_id else False
-            if tmpl and tmpl.has_standard_pack and tmpl.default_pack_id \
-                    and not line.lot_ids:
-                pack = tmpl.default_pack_id
+            # Empaque default de la compañía del apartado (no de env.company).
+            pack = False
+            if tmpl and tmpl.has_standard_pack and not line.lot_ids:
+                pack = tmpl._som_standard_packs_for_company(
+                    line.order_id.company_id).filtered('is_default')[:1]
+            if pack:
                 line.standard_pack_id = pack
                 line.pack_qty = 1.0
                 line.cantidad_m2 = pack.qty_per_pack
@@ -105,6 +108,9 @@ class StockLotHoldOrderLine(models.Model):
                 continue
             tmpl = line.product_id.product_tmpl_id
             if not tmpl or not tmpl.has_standard_pack:
+                continue
+            # Sin empaque aplicable a la compañía del apartado = libre.
+            if not tmpl._som_standard_packs_for_company(line.order_id.company_id):
                 continue
             if float_is_zero(line.cantidad_m2 or 0.0, precision_rounding=0.01):
                 continue

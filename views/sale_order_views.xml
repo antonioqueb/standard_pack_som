@@ -36,6 +36,8 @@
             </xpath>
 
             <xpath expr="//field[@name='order_line']/list/field[@name='product_uom_qty']" position="before">
+                <!-- company_id: lo usa el domain de standard_pack_id (multiempresa). -->
+                <field name="company_id" column_invisible="True"/>
                 <field name="has_standard_pack" column_invisible="True"/>
                 <field name="standard_pack_id" column_invisible="True"/>
                 <!-- La columna Pack SOLO existe cuando la orden tiene al menos
@@ -51,6 +53,7 @@
                  por_asignar/auto_transit_assign, así que aquí se agregan invisibles
                  para poder condicionar el readonly del pack igual que en la lista. -->
             <xpath expr="//field[@name='order_line']/form//field[@name='product_uom_qty']" position="before">
+                <field name="company_id" invisible="1"/>
                 <field name="has_standard_pack" invisible="1"/>
                 <field name="por_asignar" invisible="1"/>
                 <field name="auto_transit_assign" invisible="1"/>
@@ -81,6 +84,8 @@
         <field name="priority">210</field>
         <field name="arch" type="xml">
             <xpath expr="//page[@name='logistics_lines']//list/field[@name='product_uom_qty']" position="before">
+                <!-- company_id: lo usa el domain de standard_pack_id (multiempresa). -->
+                <field name="company_id" column_invisible="True"/>
                 <field name="has_standard_pack" column_invisible="True"/>
                 <field name="standard_pack_id"
                        string="Empaque"
