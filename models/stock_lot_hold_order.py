@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import math
 
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
@@ -74,12 +73,9 @@ class StockLotHoldOrderLine(models.Model):
             if qty <= 0:
                 line.pack_qty = 0
                 continue
-            packs = qty / qpp
-            packs_up = max(1, math.ceil(packs - 1e-6))
-            line.pack_qty = packs_up
-            if abs(packs - packs_up) > 1e-6:
-                line.cantidad_m2 = float_round(packs_up * qpp,
-                                               precision_rounding=0.01)
+            # La cantidad capturada no se redondea a empaques (V/745, 8 sep
+            # 2026): Pack solo informa la equivalencia.
+            line.pack_qty = float_round(qty / qpp, precision_digits=2)
 
     @api.onchange('product_id')
     def _onchange_product_id_set_default_pack_hold(self):
@@ -99,8 +95,8 @@ class StockLotHoldOrderLine(models.Model):
                 line.pack_qty = 0.0
 
     def _enforce_pack_compliance_hold(self):
-        """Misma regla dura que la venta: producto con empaque estándar solo
-        se aparta por empaques completos. Placas por lote quedan exentas."""
+        """Producto con empaque estándar: la línea debe llevar su empaque
+        seleccionado. La cantidad ya no se exige en múltiplos exactos."""
         for line in self:
             if not line.product_id or line.lot_ids:
                 continue
@@ -120,24 +116,8 @@ class StockLotHoldOrderLine(models.Model):
                     'empaque. Selecciona un empaque estándar en la línea.',
                     product=line.product_id.display_name,
                 ))
-            qpp = line.standard_pack_id.qty_per_pack
-            if qpp <= 0:
-                continue
-            packs = (line.cantidad_m2 or 0.0) / qpp
-            packs_rounded = round(packs)
-            if packs_rounded <= 0 or abs(packs - packs_rounded) > 1e-6:
-                nearest = float_round(max(packs_rounded, 1) * qpp,
-                                      precision_rounding=0.01)
-                raise ValidationError(_(
-                    'El producto "%(product)s" solo se aparta por empaque '
-                    'completo (%(pack)s = %(qpp)s). La cantidad %(qty)s no '
-                    'es múltiplo exacto (válida más cercana: %(nearest)s).',
-                    product=line.product_id.display_name,
-                    pack=line.standard_pack_id.display_name,
-                    qpp=f"{qpp:g}",
-                    qty=f"{(line.cantidad_m2 or 0.0):g}",
-                    nearest=f"{nearest:g}",
-                ))
+            # Sin exigencia de múltiplo exacto (V/745, 8 sep 2026): el
+            # empaque es referencia; se puede apartar parte de un empaque.
 
 
 class StockLotHoldOrder(models.Model):

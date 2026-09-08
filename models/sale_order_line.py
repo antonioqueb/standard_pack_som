@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import json
-import math
 
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
@@ -169,19 +168,11 @@ class SaleOrderLine(models.Model):
                 line.pack_qty = 0
                 continue
 
-            packs = qty / qpp
-            if line._som_pack_qty_covered_by_lots(qty):
-                # Cantidad = lotes completos elegidos: cajas físicas, no se toca.
-                line.pack_qty = max(1, round(packs))
-                continue
-            packs_up = max(1, math.ceil(packs - 1e-6))
-            line.pack_qty = packs_up
-
-            if abs(packs - packs_up) > 1e-6:
-                line.product_uom_qty = float_round(
-                    packs_up * qpp,
-                    precision_rounding=line.product_uom_id.rounding or 0.01,
-                )
+            # SOLICITADO PROTEGIDO (incidencia V/745, 8 sep 2026): la cantidad
+            # que teclea el vendedor NO se redondea a empaques completos. El
+            # empaque es referencia/tope, y Pack solo informa cuántos empaques
+            # equivalen (con decimales si es parcial).
+            line.pack_qty = float_round(qty / qpp, precision_digits=2)
 
     @api.onchange('product_id')
     def _onchange_product_id_set_default_pack(self):
@@ -210,9 +201,12 @@ class SaleOrderLine(models.Model):
     # =========================================================================
 
     def _enforce_pack_compliance(self):
-        """Regla dura (sin excepciones): un producto con empaque estándar SOLO
-        puede venderse por empaque, en múltiplos exactos. Los productos sin
-        empaque se venden libremente."""
+        """Producto con empaque estándar: la línea debe llevar su empaque
+        seleccionado (referencia para almacén y reportes). La cantidad ya NO
+        se exige en múltiplos exactos (incidencia V/745, 8 sep 2026): el
+        empaque es un tope/referencia, el vendedor puede vender parte de un
+        empaque (3 pzas de un empaque de 8). Los productos sin empaque se
+        venden libremente."""
         for line in self:
             if line.display_type or not line.product_id:
                 continue
@@ -236,33 +230,4 @@ class SaleOrderLine(models.Model):
                     product=line.product_id.display_name,
                 ))
 
-            qty_per_pack = line.standard_pack_id.qty_per_pack
-            if qty_per_pack <= 0:
-                continue
-
-            packs = line.product_uom_qty / qty_per_pack
-            packs_rounded = round(packs)
-
-            # Lotes completos elegidos cubren la cantidad: válido aunque el
-            # empaque redondeado no dé un múltiplo exacto.
-            if line._som_pack_qty_covered_by_lots(line.product_uom_qty):
-                continue
-
-            # Debe ser un número entero y positivo de paquetes.
-            if packs_rounded <= 0 or abs(packs - packs_rounded) > 1e-6:
-                nearest = float_round(
-                    max(packs_rounded, 1) * qty_per_pack,
-                    precision_rounding=rounding,
-                )
-                raise ValidationError(_(
-                    'El producto "%(product)s" solo se vende por empaque completo '
-                    '(%(pack)s = %(qpp)s %(uom)s). La cantidad %(qty)s no es un '
-                    'múltiplo exacto. Ajusta el número de paquetes (cantidad válida '
-                    'más cercana: %(nearest)s).',
-                    product=line.product_id.display_name,
-                    pack=line.standard_pack_id.display_name,
-                    qpp=f"{qty_per_pack:g}",
-                    uom=line.product_uom_id.name or '',
-                    qty=f"{line.product_uom_qty:g}",
-                    nearest=f"{nearest:g}",
-                ))
+            # Sin exigencia de múltiplo exacto: el empaque es referencia.
